@@ -26,6 +26,7 @@ import OrderSummary from "@/components/cart/OrderSummary";
 import { CartItem } from "@/lib/types/cart";
 import Layout from "@/components/Layout";
 import { useRouter } from "next/navigation";
+import { useOrderStore } from "@/hooks/useOrderStore";
 
 const formSchema = z.object({
 	fullName: z.string().min(1, "Full name is required"),
@@ -43,6 +44,7 @@ const formSchema = z.object({
 export default function CheckoutPage() {
 	const router = useRouter();
 	const { data: cartItems, isLoading, error } = useQuery("/cart-items/");
+	const createOrder = useOrderStore((state) => state.createOrder);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -61,7 +63,7 @@ export default function CheckoutPage() {
 	});
 
 	function onSubmit(values: z.infer<typeof formSchema>) {
-		console.log(values);
+		createOrder();
 		router.push("/orders");
 	}
 

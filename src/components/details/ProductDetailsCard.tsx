@@ -40,7 +40,7 @@ function ProductDetailsCard({ product }: { product: Product }) {
 							alt={product.name}
 							width={500}
 							height={500}
-							className="w-full h-full object-cover"
+							className="w-full h-full object-cover rounded-lg"
 						/>
 					</div>
 				</div>

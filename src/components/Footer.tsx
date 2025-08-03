@@ -6,17 +6,10 @@ export default function Footer() {
 		<footer className="bg-green-50">
 			{/* Main Footer */}
 			{/* Footer Bottom */}
-			<div className="w-full px-60 py-12">
+			<div className="container mx-auto py-12">
 				<div className="flex justify-end items-center mb-3">
 					<div className="flex items-center gap-1">
 						<span className="text-gray-600 text-sm">English</span>
-						<svg
-							className="w-2.5 h-2.5 text-gray-700"
-							fill="currentColor"
-							viewBox="0 0 10 5"
-						>
-							<path d="M0 0L5 5L10 0H0Z" />
-						</svg>
 					</div>
 				</div>
 

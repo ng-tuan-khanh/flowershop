@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ShoppingCart, User, Flower, DoorOpen } from "lucide-react";
+import { ShoppingCart, User, Flower, DoorOpen, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/hooks/useAuthStore";
 
@@ -60,7 +60,7 @@ export default function Header() {
 				</div>
 				{isAuthenticated ? (
 					<>
-						{/* <div
+						<div
 							className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-900 hover:translate-y-[-2px] transition-all duration-300"
 							onClick={handleOrdersClick}
 						>
@@ -68,7 +68,7 @@ export default function Header() {
 								<Truck className="w-6 h-6" />
 								<span className="text-sm">Orders</span>
 							</div>
-						</div> */}
+						</div>
 						<div
 							className="flex items-center gap-2 cursor-pointer text-gray-600 hover:text-gray-900 hover:translate-y-[-2px] transition-all duration-300"
 							onClick={handleCartClick}

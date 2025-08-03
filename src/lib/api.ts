@@ -1,11 +1,13 @@
 import axios, { InternalAxiosRequestConfig } from "axios";
 import ERROR_MESSAGES from "@/lib/errorMessages";
 import { toast } from "react-toastify";
-import Router from "next/router";
 import { useAuthStore } from "@/hooks/useAuthStore";
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL;
+
 const api = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_API_URL || "localhost:8000",
+	baseURL: BACKEND_URL,
 	headers: {
 		"Content-Type": "application/json",
 	},
@@ -50,7 +52,7 @@ api.interceptors.response.use(
 
 			// Handle 401 Unauthorized
 			if (status === 401) {
-				Router.push("/sign-in");
+				window.location.href = `${FRONTEND_URL}/sign-in/`;
 			}
 		} else {
 			// Handle network errors
