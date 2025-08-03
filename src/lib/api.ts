@@ -1,14 +1,32 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
 import ERROR_MESSAGES from "@/lib/errorMessages";
 import { toast } from "react-toastify";
 import Router from "next/router";
+import { useAuthStore } from "@/hooks/useAuthStore";
 
 const api = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "localhost:8000",
+	baseURL: process.env.NEXT_PUBLIC_API_URL || "localhost:8000",
 	headers: {
 		"Content-Type": "application/json",
 	},
 });
+
+api.interceptors.request.use(
+	(config: InternalAxiosRequestConfig) => {
+		if (typeof window !== "undefined") {
+			const { token } = useAuthStore.getState();
+
+			if (token && config.headers) {
+				config.headers["Authorization"] = `Token ${token}`;
+			}
+		}
+		return config;
+	},
+	(error) => {
+		console.error("Request Interceptor Error:", error);
+		return Promise.reject(error);
+	}
+);
 
 api.interceptors.response.use(
 	(response) => response,
@@ -17,6 +35,8 @@ api.interceptors.response.use(
 
 		if (error.response) {
 			const { status, data } = error.response;
+
+			console.log("Error Status:", error.status);
 
 			// Attempt to use a custom error message from the server
 			if (data && data.message) {
@@ -30,7 +50,7 @@ api.interceptors.response.use(
 
 			// Handle 401 Unauthorized
 			if (status === 401) {
-				Router.push("/login"); // Redirect to the login page
+				Router.push("/sign-in");
 			}
 		} else {
 			// Handle network errors
