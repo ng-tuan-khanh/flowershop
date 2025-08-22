@@ -8,6 +8,35 @@ function CartItemCard({ item }: { item: CartItem }) {
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
 	const removeItem = useCartStore((state) => state.removeItem);
 
+	let isDiscountActive = false;
+	let timeLeft: string = "";
+	if (item.product.pricing_rule) {
+		const startTime = new Date(item.product.pricing_rule.start_time);
+		const endTime = new Date(item.product.pricing_rule.end_time);
+		const now = new Date();
+
+		if (now >= startTime && now <= endTime) {
+			isDiscountActive = true;
+
+			const now = new Date();
+			const diff = endTime.getTime() - now.getTime();
+
+			const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+			const hours = Math.floor(
+				(diff / (1000 * 60 * 60 * 24)) % (1000 * 60 * 60)
+			);
+			const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+			timeLeft = `${days}d ${hours}h ${minutes}m`;
+		}
+	}
+
+	const discount =
+		isDiscountActive && item.product.pricing_rule
+			? Number(item.product.pricing_rule.time_discount) +
+			  Number(item.product.condition_discount)
+			: Number(item.product.condition_discount);
+
 	return (
 		<div className="p-4 flex items-center gap-6 rounded-lg hover:bg-gray-100 transition-colors duration-300">
 			{/* Product Image */}
@@ -28,8 +57,35 @@ function CartItemCard({ item }: { item: CartItem }) {
 					{item.product.name}
 				</h3>
 				{/* Price - TODO: Weird bug where the price is not rounded to 2 decimal places*/}
-				<div className="text-lg text-gray-600">${item.product.price}</div>
+				{/* <div className="text-lg text-gray-600">${item.product.price}</div> */}
 			</div>
+
+			{discount > 0 ? (
+				<div>
+					<div className="flex justify-between items-center gap-3">
+						<div className="flex items-center gap-2">
+							<span className="font-bold text-sm text-green-600">
+								$
+								{Number(
+									(item.product.price - (item.product.price * discount) / 100) *
+										item.quantity
+								).toFixed(2)}
+							</span>
+							<span className="text-xs text-gray-600 line-through">
+								${Number(item.product.price * item.quantity).toFixed(2)}
+							</span>
+						</div>
+					</div>
+
+					<span className="text-xs font-semibold text-red-500">
+						{timeLeft} left
+					</span>
+				</div>
+			) : (
+				<span className="font-bold text-sm text-green-600">
+					${Number(item.product.price * item.quantity).toFixed(2)}
+				</span>
+			)}
 
 			{/* Quantity Controls */}
 			<div className="flex items-stretch border border-gray-200 rounded">
@@ -51,9 +107,9 @@ function CartItemCard({ item }: { item: CartItem }) {
 			</div>
 
 			{/* Total Price */}
-			<div className="text-lg font-bold text-green-600 min-w-24 text-center">
+			{/* <div className="text-lg font-bold text-green-600 min-w-24 text-center">
 				${(item.product.price * item.quantity).toFixed(2)}
-			</div>
+			</div> */}
 
 			{/* Remove Button */}
 			<button

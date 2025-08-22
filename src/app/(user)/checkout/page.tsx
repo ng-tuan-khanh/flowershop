@@ -3,30 +3,47 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// import {
+// 	Form,
+// 	FormControl,
+// 	FormField,
+// 	FormItem,
+// 	FormLabel,
+// 	FormMessage,
+// } from "@/components/ui/form";
+// import {
+// 	Select,
+// 	SelectContent,
+// 	SelectItem,
+// 	SelectTrigger,
+// 	SelectValue,
+// } from "@/components/ui/select";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import useQuery from "@/hooks/useQuery";
 import OrderSummary from "@/components/cart/OrderSummary";
 import { CartItem } from "@/lib/types/cart";
 import Layout from "@/components/Layout";
 import { useRouter } from "next/navigation";
 import { useOrderStore } from "@/hooks/useOrderStore";
+import Checkout from "@/components/checkout/Checkout";
+import convertToSubcurrency from "@/lib/convertToSubcurrency";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+	Card,
+	CardHeader,
+	CardTitle,
+	CardDescription,
+	CardContent,
+	CardFooter,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+
+const stripePromise = loadStripe(
+	process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || ""
+);
 
 const formSchema = z.object({
 	fullName: z.string().min(1, "Full name is required"),
@@ -44,44 +61,79 @@ const formSchema = z.object({
 export default function CheckoutPage() {
 	const router = useRouter();
 	const { data: cartItems, isLoading, error } = useQuery("/cart-items/");
-	const createOrder = useOrderStore((state) => state.createOrder);
+	// const createOrder = useOrderStore((state) => state.createOrder);
 
-	const form = useForm<z.infer<typeof formSchema>>({
-		resolver: zodResolver(formSchema),
-		defaultValues: {
-			fullName: "",
-			country: "",
-			address1: "",
-			address2: "",
-			city: "",
-			state: "",
-			zip: "",
-			cardNumber: "",
-			expiryDate: "",
-			cvc: "",
-		},
-	});
+	// const form = useForm<z.infer<typeof formSchema>>({
+	// 	resolver: zodResolver(formSchema),
+	// 	defaultValues: {
+	// 		fullName: "",
+	// 		country: "",
+	// 		address1: "",
+	// 		address2: "",
+	// 		city: "",
+	// 		state: "",
+	// 		zip: "",
+	// 		cardNumber: "",
+	// 		expiryDate: "",
+	// 		cvc: "",
+	// 	},
+	// });
 
-	function onSubmit(values: z.infer<typeof formSchema>) {
-		createOrder();
-		router.push("/orders");
-	}
-
-	const getPrice = () => {
-		if (!cartItems) return 0;
-		return cartItems.reduce(
-			(acc: number, item: CartItem) => acc + item.product.price * item.quantity,
-			0
-		);
-	};
+	// function onSubmit(values: z.infer<typeof formSchema>) {
+	// 	createOrder();
+	// 	// router.push("/orders");
+	// }
 
 	if (isLoading || error) return <div></div>;
+
+	let amount = cartItems.reduce((acc: number, item: CartItem) => {
+		let isDiscountActive = false;
+		if (item.product.pricing_rule) {
+			const startTime = new Date(item.product.pricing_rule.start_time);
+			const endTime = new Date(item.product.pricing_rule.end_time);
+			const now = new Date();
+
+			if (now >= startTime && now <= endTime) {
+				isDiscountActive = true;
+			}
+		}
+
+		const discount =
+			isDiscountActive && item.product.pricing_rule
+				? Number(item.product.pricing_rule.time_discount) +
+				  Number(item.product.condition_discount)
+				: Number(item.product.condition_discount);
+		return (
+			acc +
+			(item.product.price - (item.product.price * discount) / 100) *
+				item.quantity
+		);
+	}, 0);
+	amount = Math.round((amount + Number.EPSILON) * 100) / 100;
 
 	return (
 		<Layout>
 			<div className="max-w-7xl mx-auto py-16 flex gap-16 justify-center">
 				<div className="w-1/2">
-					<Form {...form}>
+					{amount ? (
+						<Elements
+							stripe={stripePromise}
+							options={{
+								mode: "payment",
+								amount: convertToSubcurrency(amount),
+								currency: "usd",
+							}}
+						>
+							<Checkout amount={amount} />
+						</Elements>
+					) : (
+						<div className="flex gap-2">
+							<h1 className="text-2xl font-bold text-gray-800">Checkout</h1>
+							<span className="text-2xl text-gray-600">(No items)</span>
+						</div>
+					)}
+
+					{/* <Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 							<Card>
 								<CardHeader>
@@ -273,14 +325,14 @@ export default function CheckoutPage() {
 							</Card>
 
 							<Button type="submit" className="w-full p-6 cursor-pointer">
-								Pay ${getPrice().toFixed(2)}
+								Pay ${amount.toFixed(2)}
 							</Button>
 						</form>
-					</Form>
+					</Form> */}
 				</div>
 				<div>
 					<OrderSummary
-						price={getPrice()}
+						price={amount}
 						isDisabled={!cartItems || cartItems.length === 0}
 						hideCheckoutButton
 					/>

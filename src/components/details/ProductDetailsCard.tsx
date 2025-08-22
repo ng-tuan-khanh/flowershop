@@ -9,7 +9,40 @@ function ProductDetailsCard({ product }: { product: Product }) {
 	const router = useRouter();
 	const [quantity, setQuantity] = useState(1);
 
+	let isDiscountActive = false;
+	let timeLeft: string = "";
+	if (product.pricing_rule) {
+		const startTime = new Date(product.pricing_rule.start_time);
+		const endTime = new Date(product.pricing_rule.end_time);
+		const now = new Date();
+
+		if (now >= startTime && now <= endTime) {
+			isDiscountActive = true;
+
+			const now = new Date();
+			const diff = endTime.getTime() - now.getTime();
+
+			const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+			const hours = Math.floor(
+				(diff / (1000 * 60 * 60 * 24)) % (1000 * 60 * 60)
+			);
+			const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+			timeLeft = `${days}d ${hours}h ${minutes}m`;
+		}
+	}
+
+	const discount =
+		isDiscountActive && product.pricing_rule
+			? Number(product.pricing_rule.time_discount) +
+			  Number(product.condition_discount)
+			: Number(product.condition_discount);
+
 	const getTotalPrice = () => {
+		if (discount > 0) {
+			const discountedPrice = product.price - (product.price * discount) / 100;
+			return (discountedPrice * quantity).toFixed(2);
+		}
 		return (product.price * quantity).toFixed(2);
 	};
 
@@ -51,12 +84,42 @@ function ProductDetailsCard({ product }: { product: Product }) {
 				{/* Title and Price */}
 				<div className="flex justify-between items-start">
 					<div className="space-y-2">
-						<h1 className="text-2xl font-bold text-gray-900">
-							{product.name.toUpperCase()}
-						</h1>
-						<p className="text-xl font-medium text-gray-900">
+						<div className="flex items-center gap-4">
+							<h1 className="text-2xl font-bold text-gray-900">
+								{product.name.toUpperCase()}
+							</h1>
+							<span className="px-2 py-1 rounded-md border-green-600 border-1 text-green-600 text-sm font-semibold capitalize">
+								{product.condition}
+							</span>
+						</div>
+						{discount > 0 ? (
+							<div>
+								<div className="flex justify-between items-center gap-6 mb-2">
+									<div className="flex items-center gap-4">
+										<span className="font-bold text-xl text-green-600">
+											$
+											{Number(
+												product.price - (product.price * discount) / 100
+											).toFixed(2)}
+										</span>
+										<span className="text-md text-gray-600 line-through">
+											${Number(product.price).toFixed(2)}
+										</span>
+									</div>
+								</div>
+
+								<span className="text-md font-semibold text-red-500">
+									{timeLeft} left
+								</span>
+							</div>
+						) : (
+							<span className="font-bold text-xl text-green-600">
+								${Number(product.price).toFixed(2)}
+							</span>
+						)}
+						{/* <p className="text-xl font-medium text-gray-900">
 							${product.price}
-						</p>
+						</p> */}
 					</div>
 				</div>
 

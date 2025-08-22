@@ -22,10 +22,29 @@ export default function CartPage() {
 	};
 
 	const getPrice = () => {
-		return cartItems.reduce(
-			(acc: number, item: CartItem) => acc + item.product.price * item.quantity,
-			0
-		);
+		return cartItems.reduce((acc: number, item: CartItem) => {
+			let isDiscountActive = false;
+			if (item.product.pricing_rule) {
+				const startTime = new Date(item.product.pricing_rule.start_time);
+				const endTime = new Date(item.product.pricing_rule.end_time);
+				const now = new Date();
+
+				if (now >= startTime && now <= endTime) {
+					isDiscountActive = true;
+				}
+			}
+
+			const discount =
+				isDiscountActive && item.product.pricing_rule
+					? Number(item.product.pricing_rule.time_discount) +
+					  Number(item.product.condition_discount)
+					: Number(item.product.condition_discount);
+			return (
+				acc +
+				(item.product.price - (item.product.price * discount) / 100) *
+					item.quantity
+			);
+		}, 0);
 	};
 
 	// TODO: Implement loading and error components

@@ -13,6 +13,13 @@ export interface Condition {
 	name: string;
 }
 
+export interface PricingRule {
+	id: number;
+	time_discount: number;
+	start_time: string;
+	end_time: string;
+}
+
 export interface Product {
 	id: number;
 	name: string;
@@ -23,6 +30,8 @@ export interface Product {
 	average_rating: number;
 	total_reviews: number;
 	price: number;
+	condition_discount: number;
+	pricing_rule: PricingRule | null;
 	image_url: string;
 	stock: number;
 }

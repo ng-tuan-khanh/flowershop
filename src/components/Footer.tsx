@@ -6,7 +6,7 @@ export default function Footer() {
 		<footer className="bg-green-50">
 			{/* Main Footer */}
 			{/* Footer Bottom */}
-			<div className="container mx-auto py-12">
+			<div className="max-w-7xl mx-auto py-12">
 				<div className="flex justify-end items-center mb-3">
 					<div className="flex items-center gap-1">
 						<span className="text-gray-600 text-sm">English</span>

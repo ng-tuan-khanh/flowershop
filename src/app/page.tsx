@@ -14,12 +14,12 @@ function HomePage() {
 		data: featured,
 		isLoading: isLoadingFeatured,
 		error: errorFeatured,
-	} = useQuery("/products/featured/");
+	} = useQuery("/products/products/featured/");
 	const {
 		data: fresh,
 		isLoading: isLoadingFresh,
 		error: errorFresh,
-	} = useQuery("/products/fresh/");
+	} = useQuery("/products/products/fresh/");
 
 	if (isLoadingFeatured || isLoadingFresh || errorFeatured || errorFresh) {
 		return <div></div>;

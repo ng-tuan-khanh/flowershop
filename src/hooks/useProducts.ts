@@ -1,7 +1,11 @@
 import { SelectedFilters } from "@/lib/types/filter";
 import useQuery from "./useQuery";
 
-const useProducts = (filters: SelectedFilters) => {
+const useProducts = (
+	filters: SelectedFilters,
+	page: number,
+	sortOption: string
+) => {
 	const { name, types, occasions, conditions, priceStart, priceEnd } = filters;
 
 	const queryParams = new URLSearchParams();
@@ -12,8 +16,10 @@ const useProducts = (filters: SelectedFilters) => {
 	if (conditions) queryParams.append("condition__in", conditions.join(","));
 	if (priceStart) queryParams.append("price__gt", priceStart.toString());
 	if (priceEnd) queryParams.append("price__lt", priceEnd.toString());
+	queryParams.append("page", page.toString());
+	queryParams.append("ordering", sortOption);
 
-	const url = `/products/?${queryParams.toString()}`;
+	const url = `/products/products/?${queryParams.toString()}`;
 	const { data, error, isLoading } = useQuery(url);
 
 	return { data, error, isLoading };
