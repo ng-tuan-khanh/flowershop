@@ -1,3 +1,5 @@
+This project is tested with BrowserStack.
+
 ## Setup:
 
 - npm run build
